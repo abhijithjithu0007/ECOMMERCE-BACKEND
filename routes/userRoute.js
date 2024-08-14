@@ -12,4 +12,5 @@ routes
  .get('/user/:id',controller.productShowById)
 .post('/user/wishlist',auth,controller.addToWishlist)
 
+
 module.exports= routes
