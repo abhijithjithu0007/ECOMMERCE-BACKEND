@@ -28,6 +28,16 @@ const viewUsersbyID = async(req,res)=>{
    }
 }
 
+const getAllProducts =async(req,res)=>{
+   try {
+    const getall = await Product.find()
+    if(!getall){
+        res.json(404).json('not found')
+    }
+   } catch (error) {
+    res.status(500).json(error)
+   }
+}
 
 const viewProductByCategory = async(req,res)=>{
    try {
