@@ -63,6 +63,18 @@ const productShowById = async (req, res) => {
     }
 }
 
+
+// const getAllProducts =async(req,res)=>{
+//    try {
+//     const getall = await Product.find()
+//     if(!getall){
+//         res.json(404).json('not found')
+//     }
+//    } catch (error) {
+//     res.status(500).json(error)
+//    }
+// }
+
 const addToCart = async (req,res) => {
     try {
         const { productId, quantity } = req.body;
@@ -89,6 +101,8 @@ const addToCart = async (req,res) => {
         res.status(500).json(error)
     }
 }
+
+
 
 
 const addToWishlist =async(req,res)=>{
