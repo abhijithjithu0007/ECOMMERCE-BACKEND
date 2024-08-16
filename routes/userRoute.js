@@ -11,6 +11,8 @@ routes
  .get('/user/category/:category',controller.productsCategory)
  .get('/user/:id',controller.productShowById)
 .post('/user/wishlist',auth,controller.addToWishlist)
+.get('/user/viewusercart/:id',controller.viewCartProducts)
+.delete('/user/removefromcart',auth,controller.removeFromCart)
 
 
 module.exports= routes

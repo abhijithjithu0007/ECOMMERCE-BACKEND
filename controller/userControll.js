@@ -8,12 +8,12 @@ const Wishlist = require('../models/Wishlist')
 
 const regUser = async (req, res) => {
     console.log(req.body);
-    
+
     const { name, email, password } = req.body
     try {
         const newuser = new User({ name, email, password })
         await newuser.save()
-        res.status(201).json({status:"success",message:"user registerd",data:newuser})
+        res.status(201).json({ status: "success", message: "user registerd", data: newuser })
     } catch (error) {
         res.status(404).json(error)
     }
@@ -24,14 +24,14 @@ const loginUser = async (req, res) => {
 
     console.log(req.body);
     try {
-        const user = await User.findOne({email})
+        const user = await User.findOne({ email })
         console.log(user);
-        
+
         if (!user) {
             return res.status(404).json({ message: 'User Not Found' })
         }
         const isMatch = await bcrypt.compare(password, user.password);
-        
+
         if (!isMatch) return res.status(400).json({ message: 'Invalid credentials' });
 
         const token = jwt.sign({ id: user._id }, process.env.JWT_KEY, { expiresIn: '1d' });
@@ -64,35 +64,35 @@ const productShowById = async (req, res) => {
 }
 
 
-const getAllProducts =async(req,res)=>{
-   try {
-    const getall = await Product.find()
-    if(!getall){
-        res.json(404).json('not found')
+const getAllProducts = async (req, res) => {
+    try {
+        const getall = await Product.find()
+        if (!getall) {
+            res.json(404).json('not found')
+        }
+    } catch (error) {
+        res.status(500).json(error)
     }
-   } catch (error) {
-    res.status(500).json(error)
-   }
 }
 
-const addToCart = async (req,res) => {
+const addToCart = async (req, res) => {
     try {
         const { productId, quantity } = req.body;
         const data = await Cart.findOne({ user: req.user });
         if (!data) {
-            const newCart = new Cart ({
-                user:req.user,
-                products:[{product:productId,quantity}],
+            const newCart = new Cart({
+                user: req.user,
+                products: [{ product: productId, quantity }],
             })
             await newCart.save()
             return res.status(200).json(newCart)
         }
-        const exist = data.products.find(pro=>pro.product.toString()==productId)
-        
-        if(exist){
-            exist.quantity+=quantity
-        }else{
-            data.products.push({product:productId,quantity})
+        const exist = data.products.find(pro => pro.product.toString() == productId)
+
+        if (exist) {
+            exist.quantity += quantity
+        } else {
+            data.products.push({ product: productId, quantity })
         }
 
         await data.save()
@@ -101,55 +101,73 @@ const addToCart = async (req,res) => {
         res.status(500).json(error)
     }
 }
-
-
-const viewCartProducts =async(req,res)=>{
-   try {
-    const cartproduct = await Cart.find()
-    if(!cartproduct){
-       res.json(404).json('not found')
-}
-    res.status(200).json(cartproduct)
-   } catch (error) {
-    
-   }
-}
-
-
-const addToWishlist =async(req,res)=>{
-   try {
+const removeFromCart = async (req, res) => {
+try {
     const {productId} = req.body
-    const wishlist = await Wishlist.findOne({user:req.user})
-    if(!wishlist){
-        const newWish = new Wishlist({
-            user:req.user,
-            products:[productId]
-        })
-        await newWish.save() 
-        res.status(200).json(newWish)
+    const datas = await Cart.findOne({user:req.user})
+    
+   if(!datas) return res.status(404).json("cart not found")
+    const productIndex = datas.products.findIndex(pro=>pro.product.toString()===productId)
+
+   datas.products.splice(productIndex,1)
+   await datas.save()
+   res.status(200).json('product removed')
+
+} catch (error) {
+    res.status(404).json('product not found')
+}
+}
+
+
+const viewCartProducts = async (req, res) => {
+    try {
+        const cartproduct = await Cart.findOne({ user: req.params.id })
+        if (!cartproduct) {
+            res.json(404).json('not found')
+        }
+        res.status(200).json(cartproduct)
+    } catch (error) {
+        console.log(error);
+
     }
-    if(!wishlist.products.includes(productId)){
-        wishlist.products.push(productId)
-        await wishlist.save()
-        return res.status(200).json({message:"product added to wishlist"})
+}
+
+
+const addToWishlist = async (req, res) => {
+    try {
+        const { productId } = req.body
+        const wishlist = await Wishlist.findOne({ user: req.user })
+        if (!wishlist) {
+            const newWish = new Wishlist({
+                user: req.user,
+                products: [productId]
+            })
+            await newWish.save()
+            res.status(200).json(newWish)
+        }
+        if (!wishlist.products.includes(productId)) {
+            wishlist.products.push(productId)
+            await wishlist.save()
+            return res.status(200).json({ message: "product added to wishlist" })
+        }
+        res.json(wishlist)
+    } catch (error) {
+        res.status(404).json(error)
     }
-    res.json(wishlist)
-   } catch (error) {
-     res.status(404).json(error)
-   }
 }
 
 
 
 
 
-module.exports={
-  regUser,
-  loginUser,
-  productShowById,
-  productsCategory,
-  addToCart,
-  addToWishlist,
-  getAllProducts,
-  viewCartProducts
+module.exports = {
+    regUser,
+    loginUser,
+    productShowById,
+    productsCategory,
+    addToCart,
+    addToWishlist,
+    getAllProducts,
+    viewCartProducts,
+    removeFromCart
 }
