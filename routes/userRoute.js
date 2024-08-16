@@ -13,7 +13,8 @@ routes
 .post('/user/wishlist',auth,controller.addToWishlist)
 .get('/user/viewusercart/:id',controller.viewCartProducts)
 .delete('/user/removefromcart',auth,controller.removeFromCart)
-.get('/user/viewwishlist/:id',auth,controller.viewWishList)
+.get('/user/viewwishlist/:id',controller.viewWishList)
+.delete('/user/removefromwish',auth,controller.removeWishlistProduct)
 
 
 module.exports= routes

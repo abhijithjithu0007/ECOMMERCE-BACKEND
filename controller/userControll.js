@@ -154,10 +154,29 @@ const addToWishlist = async (req, res) => {
             wishlist.products.push(productId)
             await wishlist.save()
             return res.status(200).json({ message: "product added to wishlist" })
+        }else{
+            res.json("product already added")
         }
         res.json(wishlist)
     } catch (error) {
         res.status(404).json(error)
+    }
+}
+
+const removeWishlistProduct =async(req,res)=>{
+    try {
+        const { productId } = req.body        
+        const datas = await Wishlist.findOne({ user: req.user })
+
+        if (!datas) return res.status(404).json("product not found")
+        const productIndex = datas.products.findIndex(pro => pro.toString() === productId)
+
+        datas.products.splice(productIndex, 1)
+        await datas.save()
+        res.status(200).json('product removed')
+
+    } catch (error) {
+        res.status(404).json('there have an error')
     }
 }
 
@@ -189,7 +208,8 @@ module.exports = {
     addToCart,
 
     addToWishlist,
-    viewWishList
+    viewWishList,
+    removeWishlistProduct
    
 
 }
