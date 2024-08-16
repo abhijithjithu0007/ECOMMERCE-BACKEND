@@ -101,21 +101,26 @@ const addToCart = async (req, res) => {
         res.status(500).json(error)
     }
 }
-const removeFromCart = async (req, res) => {
-try {
-    const {productId} = req.body
-    const datas = await Cart.findOne({user:req.user})
-    
-   if(!datas) return res.status(404).json("cart not found")
-    const productIndex = datas.products.findIndex(pro=>pro.product.toString()===productId)
 
-   datas.products.splice(productIndex,1)
-   await datas.save()
-   res.status(200).json('product removed')
+const updateProductQuantity=async(req,res)=>{
 
-} catch (error) {
-    res.status(404).json('product not found')
 }
+
+const removeFromCart = async (req, res) => {
+    try {
+        const { productId } = req.body
+        const datas = await Cart.findOne({ user: req.user })
+
+        if (!datas) return res.status(404).json("cart not found")
+        const productIndex = datas.products.findIndex(pro => pro.product.toString() === productId)
+
+        datas.products.splice(productIndex, 1)
+        await datas.save()
+        res.status(200).json('product removed')
+
+    } catch (error) {
+        res.status(404).json('product not found')
+    }
 }
 
 
@@ -163,11 +168,16 @@ const addToWishlist = async (req, res) => {
 module.exports = {
     regUser,
     loginUser,
+
     productShowById,
     productsCategory,
-    addToCart,
-    addToWishlist,
     getAllProducts,
+
     viewCartProducts,
-    removeFromCart
+    removeFromCart,
+    addToCart,
+
+    addToWishlist,
+   
+
 }
