@@ -161,8 +161,19 @@ const addToWishlist = async (req, res) => {
     }
 }
 
+const viewWishList=async(req,res)=>{
+    try {
+        const wishlistproduct = await Wishlist.findOne({ user: req.params.id })
+        if (!wishlistproduct) {
+            res.json(404).json('not found')
+        }
+        res.status(200).json(wishlistproduct)
+    } catch (error) {
+        console.log(error);
 
+    }
 
+}
 
 
 module.exports = {
@@ -178,6 +189,7 @@ module.exports = {
     addToCart,
 
     addToWishlist,
+    viewWishList
    
 
 }
