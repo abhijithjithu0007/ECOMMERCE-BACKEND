@@ -4,6 +4,7 @@ const Cart = require('../models/Cart')
 const jwt = require('jsonwebtoken')
 const bcrypt = require('bcryptjs')
 const Wishlist = require('../models/Wishlist')
+const Order = require('../models/Order')
 
 
 const regUser = async (req, res) => {
@@ -220,8 +221,22 @@ const viewWishList=async(req,res)=>{
 }
 
 
-const createOrder=()=>{
-    
+const createOrder=async(req,res)=>{
+    try {
+        const usercart = await Cart.findOne({user:req.user})
+         if(!usercart) return res.status(404).json("Usercart not found")
+
+            const totalprice = usercart.products.reduce((total,val)=>total+val.product.price+val.quantity)
+            const order = new Order({
+                user:req.user,
+                products: usercart.products.map((val)=>{
+                    product:val.product._id,
+                    quantity:val.quantity,
+                }),
+            })
+    } catch (error) {
+        
+    }
 }
 
 module.exports = {
