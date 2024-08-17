@@ -103,7 +103,32 @@ const addToCart = async (req, res) => {
 }
 
 const updateProductQuantity=async(req,res)=>{
+   try {
+    const {productId,action} = req.body
+        const cartdata = await Cart.findOne({user:req.user})
+        console.log(cartdata);
+        
+        if(!cartdata){
+            res.status(404).json("user cart not found")
+        }
+        const cartProduct = cartdata.products.find(prod=>prod.product.toString()===productId)
 
+        if(action==="increment"){
+            cartProduct.quantity+=1
+        }else if(action==="decrement"){
+           if(cartProduct.quantity >1){
+            cartProduct.quantity-=1
+           }else{
+            cartdata.products = cartdata.products.filter(val=>val.product.toString()!==productId)
+           }
+        }else{
+            res.status(404).json("there is an issue for updating quantity")
+        }
+        await cartdata.save();
+        res.status(200).json(cartdata);
+   } catch (error) {
+     res.status(500).json(error)
+   }
 }
 
 const removeFromCart = async (req, res) => {
@@ -195,6 +220,10 @@ const viewWishList=async(req,res)=>{
 }
 
 
+const createOrder=()=>{
+    
+}
+
 module.exports = {
     regUser,
     loginUser,
@@ -206,6 +235,7 @@ module.exports = {
     viewCartProducts,
     removeFromCart,
     addToCart,
+    updateProductQuantity,
 
     addToWishlist,
     viewWishList,
