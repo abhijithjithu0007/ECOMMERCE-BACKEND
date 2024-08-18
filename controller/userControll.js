@@ -228,7 +228,7 @@ const createOrder = async (req, res) => {
         
         if (!usercart) return res.status(404).json("Usercart not found")
 
-        const totalprice = usercart.products.reduce((total, val) => total + val.product.price + val.quantity)
+        const totalprice = usercart.products.reduce((total, val) => total + val.price *val.quantity,0)
         console.log(totalprice);
         
         const order = new Order({
@@ -242,11 +242,34 @@ const createOrder = async (req, res) => {
 
         await order.save()
         await Cart.findOneAndDelete({ user: req.user })
-        res.status(200).json(order)
+        res.status(200).json(order,"order created")
     } catch (error) {
         res.status(500).json(error)
     }
 }
+
+const getOrderDetails= async(req,res)=>{
+try {
+    const orders = await Order.findOne({user:req.user._id}).populate('products.product')
+    if(!orders) return res.status(404).json("no user")
+
+        const orderdetails ={
+            _id: orders._id,
+            user:orders.user,
+            totalprice:orders.totalprice,
+            allproducts:orders.products.map(val=>({
+               product:val.product,
+               quantity:val.quantity
+            }))
+        }
+
+        res.status(200).json(orderdetails)
+} catch (error) {
+    res.status(500).json("internal server error")
+}
+}
+
+
 
 module.exports = {
     regUser,

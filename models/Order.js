@@ -8,7 +8,7 @@ const orderSchema = new mongoose.Schema({
       quantity: { type: Number, required: true },
     },
   ],
-  totalPrice: { type: Number, required: true },
+  totalprice: { type: Number, required: true },
 });
 
 module.exports = mongoose.model('Order', orderSchema);
