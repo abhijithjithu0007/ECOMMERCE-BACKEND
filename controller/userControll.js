@@ -152,7 +152,7 @@ const removeFromCart = async (req, res) => {
 
 const viewCartProducts = async (req, res) => {
     try {
-        const cartproduct = await Cart.findOne({ user: req.params.id })
+        const cartproduct = await Cart.findOne({ user: req.user})
         if (!cartproduct) {
             res.json(404).json('not found')
         }
