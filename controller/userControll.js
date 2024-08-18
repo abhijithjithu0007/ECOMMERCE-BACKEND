@@ -78,12 +78,12 @@ const getAllProducts = async (req, res) => {
 
 const addToCart = async (req, res) => {
     try {
-        const { productId, quantity ,price} = req.body;
+        const { productId, quantity,price} = req.body;
         const data = await Cart.findOne({ user: req.user });
         if (!data) {
             const newCart = new Cart({
                 user: req.user,
-                products: [{ product: productId, quantity,price }],
+                products: [{ product: productId, quantity,price}],
             })
             await newCart.save()
             return res.status(200).json(newCart)
@@ -93,7 +93,7 @@ const addToCart = async (req, res) => {
         if (exist) {
             exist.quantity += quantity
         } else {
-            data.products.push({ product: productId, quantity })
+            data.products.push({ product: productId, quantity,price })
         }
 
         await data.save()
