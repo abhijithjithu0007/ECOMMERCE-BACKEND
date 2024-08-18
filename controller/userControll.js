@@ -288,5 +288,6 @@ module.exports = {
     viewWishList,
     removeWishlistProduct,
 
-    createOrder
+    createOrder,
+    getOrderDetails
 }
