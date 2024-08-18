@@ -16,7 +16,7 @@ routes
     .get('/user/viewwishlist/:id', controller.viewWishList)
     .delete('/user/removefromwish', auth, controller.removeWishlistProduct)
     .put('/user/updateproquantity', auth, controller.updateProductQuantity)
-    .post('/user/create-order',controller.createOrder)
+    .post('/user/create-order',auth,controller.createOrder)
 
 
 module.exports = routes

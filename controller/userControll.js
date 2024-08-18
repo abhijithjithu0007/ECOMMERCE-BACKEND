@@ -78,12 +78,12 @@ const getAllProducts = async (req, res) => {
 
 const addToCart = async (req, res) => {
     try {
-        const { productId, quantity } = req.body;
+        const { productId, quantity ,price} = req.body;
         const data = await Cart.findOne({ user: req.user });
         if (!data) {
             const newCart = new Cart({
                 user: req.user,
-                products: [{ product: productId, quantity }],
+                products: [{ product: productId, quantity,price }],
             })
             await newCart.save()
             return res.status(200).json(newCart)
@@ -224,9 +224,13 @@ const viewWishList = async (req, res) => {
 const createOrder = async (req, res) => {
     try {
         const usercart = await Cart.findOne({ user: req.user })
+        console.log(usercart.products);
+        
         if (!usercart) return res.status(404).json("Usercart not found")
 
         const totalprice = usercart.products.reduce((total, val) => total + val.product.price + val.quantity)
+        console.log(totalprice);
+        
         const order = new Order({
             user: req.user,
             products: usercart.products.map(val => ({
@@ -238,9 +242,9 @@ const createOrder = async (req, res) => {
 
         await order.save()
         await Cart.findOneAndDelete({ user: req.user })
-        res.status(200).json("product added")
+        res.status(200).json(order)
     } catch (error) {
-        res.status(500).json(error, "server error")
+        res.status(500).json(error)
     }
 }
 
@@ -262,6 +266,4 @@ module.exports = {
     removeWishlistProduct,
 
     createOrder
-
-
 }
