@@ -235,38 +235,26 @@ const createOrder = async (req, res) => {
             user: req.user,
             products: usercart.products.map(val => ({
                 product: val.product._id,
-                quantity: val.quantity
+                quantity: val.quantity,
             })),
             totalprice,
         })
 
         await order.save()
         await Cart.findOneAndDelete({ user: req.user })
-        res.status(200).json(order,"order created")
+        res.status(200).json(order)
     } catch (error) {
         res.status(500).json(error)
     }
 }
 
 const getOrderDetails= async(req,res)=>{
-try {
-    const orders = await Order.findOne({user:req.user._id}).populate('products.product')
-    if(!orders) return res.status(404).json("no user")
-
-        const orderdetails ={
-            _id: orders._id,
-            user:orders.user,
-            totalprice:orders.totalprice,
-            allproducts:orders.products.map(val=>({
-               product:val.product,
-               quantity:val.quantity
-            }))
-        }
-
-        res.status(200).json(orderdetails)
-} catch (error) {
-    res.status(500).json("internal server error")
-}
+    try {
+        const orders = await Order.findOne({ user: req.user }).populate('products.product');
+        res.json(orders);
+      } catch (err) {
+        res.status(500).json({ error: err.message });
+      }
 }
 
 

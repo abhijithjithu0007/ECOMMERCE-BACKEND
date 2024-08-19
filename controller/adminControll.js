@@ -1,7 +1,6 @@
 const User = require('../models/User')
 const Product  = require('../models/Product')
 const Cart = require('../models/Cart')
-const { contextsKey } = require('express-validator/lib/base')
 
 
 
@@ -69,7 +68,7 @@ const addProducts = async(req,res)=>{
     await newproduct.save()
     res.status(200).json(newproduct)
     
-   } catch (error) {
+   } catch (error){
     res.status(500).json(error)
    }
 }
