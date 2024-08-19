@@ -251,6 +251,7 @@ const createOrder = async (req, res) => {
 const getOrderDetails= async(req,res)=>{
     try {
         const orders = await Order.findOne({ user: req.user }).populate('products.product');
+        if(!orders) return res.status(404).json("user not found")
         res.json(orders);
       } catch (err) {
         res.status(500).json({ error: err.message });
@@ -259,23 +260,24 @@ const getOrderDetails= async(req,res)=>{
 
 
 
+
 module.exports = {
     regUser,
     loginUser,
-
+////////////////////////
     productShowById,
     productsCategory,
     getAllProducts,
-
+////////////////////////
     viewCartProducts,
     removeFromCart,
     addToCart,
     updateProductQuantity,
-
+////////////////////////
     addToWishlist,
     viewWishList,
     removeWishlistProduct,
-
+////////////////////////
     createOrder,
     getOrderDetails
 }

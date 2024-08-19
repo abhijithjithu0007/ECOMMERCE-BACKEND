@@ -84,6 +84,15 @@ const deleteProduct =async(req,res)=>{
    }
 }
 
+const updateProduct =async(req,res)=>{
+  try {
+   const updateproduct = await Product.findByIdAndUpdate(req.params.id,req.body ,{new:true})
+   res.json(updateproduct)
+  } catch (error) {
+   res.status(500).json(error)
+  }
+}
+
 
 
 
@@ -94,5 +103,7 @@ module.exports={
     viewProductByCategory,
     viewProductbyID,
     addProducts,
-    deleteProduct
+    deleteProduct,
+    updateProduct,
+    getAllProducts
 }
