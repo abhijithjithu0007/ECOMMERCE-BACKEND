@@ -5,6 +5,7 @@ const jwt = require('jsonwebtoken')
 const bcrypt = require('bcryptjs')
 const Wishlist = require('../models/Wishlist')
 const Order = require('../models/Order')
+const Admin = require('../models/Admin')
 
 
 const regUser = async (req, res) => {
@@ -22,21 +23,27 @@ const regUser = async (req, res) => {
 
 const loginUser = async (req, res) => {
     const { email, password } = req.body
-
-    console.log(req.body);
+    
     try {
-        const user = await User.findOne({ email })
-        console.log(user);
+        let user = await User.findOne({ email })
+        let role = 'user'
+        
+
+       if(!user){
+         user = await Admin.findOne({email})
+         role = 'admin'
+       }
+        
 
         if (!user) {
-            return res.status(404).json({ message: 'User Not Found' })
+            return res.status(404).json( 'User Not Found' )
         }
         const isMatch = await bcrypt.compare(password, user.password);
 
         if (!isMatch) return res.status(400).json({ message: 'Invalid credentials' });
 
         const token = jwt.sign({ id: user._id }, process.env.JWT_KEY, { expiresIn: '1d' });
-        res.json({ token, user: { id: user._id, name: user.name, email: user.email } });
+        res.json({ token, user: { id: user._id, name: user.name, email: user.email,role:role } });
     } catch (error) {
         res.status(404).json(error)
     }

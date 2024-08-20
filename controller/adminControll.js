@@ -1,6 +1,7 @@
 const User = require('../models/User')
 const Product  = require('../models/Product')
 const Cart = require('../models/Cart')
+const Order = require('../models/Order')
 
 
 
@@ -93,6 +94,18 @@ const updateProduct =async(req,res)=>{
   }
 }
 
+const getTotalProductsOrdered=async(req,res)=>{
+  try {
+   const total = await Order.aggregate([
+      {$unwind: "$products"},
+      {$group: {_id:null, totalProducts:{$sum:'$products.quantity'}}}
+   ])
+   res.json(total[0])
+  } catch (error) {
+   res.status(500).json(error)
+  }
+}
+
 
 
 
@@ -105,5 +118,6 @@ module.exports={
     addProducts,
     deleteProduct,
     updateProduct,
-    getAllProducts
+    getAllProducts,
+    getTotalProductsOrdered
 }
