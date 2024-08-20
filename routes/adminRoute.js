@@ -13,5 +13,6 @@ router
     .get('/admin/product/:id', auth,adminAuth,controller.viewProductbyID)
     .post('/admin/addproduct',auth,adminAuth, controller.addProducts)
     .delete('/admin/deleteproduct/:id',auth,adminAuth, controller.deleteProduct)
+    .put('/admin/updateproduct/:id' ,auth,adminAuth,controller.updateProduct)
 
 module.exports = router
