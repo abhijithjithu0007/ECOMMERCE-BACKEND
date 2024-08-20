@@ -8,7 +8,7 @@ const Order = require('../models/Order')
 const Admin = require('../models/Admin')
 
 
-const regUser = async (req, res) => {
+const regUser = async (req, res) =>{   
     console.log(req.body);
 
     const { name, email, password } = req.body

@@ -5,7 +5,6 @@ const Order = require('../models/Order')
 
 
 
-
 const viewUsers = async(req,res)=>{
    try {
     const user = await User.find()
@@ -32,8 +31,9 @@ const getAllProducts =async(req,res)=>{
    try {
     const getall = await Product.find()
     if(!getall){
-        res.json(404).json('not found')
+        res.status(404).json('not found')
     }
+    res.status(200).json(getall)
    } catch (error) {
     res.status(500).json(error)
    }

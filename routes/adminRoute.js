@@ -8,6 +8,7 @@ const auth = require('../middleware/authMiddleware')
 router
     .get('/admin/alluser', auth,adminAuth,controller.viewUsers)
     .get('/admin/alluserById/:id',auth,adminAuth, controller.viewUsersbyID)
+    .get('/admin/allproducts',auth,adminAuth,controller.getAllProducts)
     .get('/admin/category/:category',auth,adminAuth, controller.viewProductByCategory)
     .get('/admin/product/:id', auth,adminAuth,controller.viewProductbyID)
     .post('/admin/addproduct',auth,adminAuth, controller.addProducts)
