@@ -83,10 +83,11 @@ const getAllProducts = async (req, res) => {
 const addToCart = async (req, res) => {
     try {
         const { productId, quantity, price } = req.body;
-        const data = await Cart.findOne({ user: req.user });
+        const data = await Cart.findOne({ user: req.user.id});
+
         if (!data) {
             const newCart = new Cart({
-                user: req.user,
+                user: req.user.id,
                 products: [{ product: productId, quantity, price }],
             })
             await newCart.save()
@@ -110,7 +111,7 @@ const addToCart = async (req, res) => {
 const updateProductQuantity = async (req, res) => {
     try {
         const { productId, action } = req.body
-        const cartdata = await Cart.findOne({ user: req.user })
+        const cartdata = await Cart.findOne({ user: req.user.id})
         console.log(cartdata);
 
         if (!cartdata) {
@@ -139,7 +140,7 @@ const updateProductQuantity = async (req, res) => {
 const removeFromCart = async (req, res) => {
     try {
         const { productId } = req.body
-        const datas = await Cart.findOne({ user: req.user })
+        const datas = await Cart.findOne({ user: req.user.id })
 
         if (!datas) return res.status(404).json("cart not found")
         const productIndex = datas.products.findIndex(pro => pro.product.toString() === productId)
@@ -156,7 +157,7 @@ const removeFromCart = async (req, res) => {
 
 const viewCartProducts = async (req, res) => {
     try {
-        const cartproduct = await Cart.findOne({ user: req.user })
+        const cartproduct = await Cart.findOne({ user: req.user.id })
         if (!cartproduct) {
             res.json(404).json('not found')
         }
@@ -171,10 +172,10 @@ const viewCartProducts = async (req, res) => {
 const addToWishlist = async (req, res) => {
     try {
         const { productId } = req.body
-        const wishlist = await Wishlist.findOne({ user: req.user })
+        const wishlist = await Wishlist.findOne({ user: req.user.id })
         if (!wishlist) {
             const newWish = new Wishlist({
-                user: req.user,
+                user: req.user.id,
                 products: [productId]
             })
             await newWish.save()
@@ -196,7 +197,7 @@ const addToWishlist = async (req, res) => {
 const removeWishlistProduct = async (req, res) => {
     try {
         const { productId } = req.body
-        const datas = await Wishlist.findOne({ user: req.user })
+        const datas = await Wishlist.findOne({ user: req.user.id })
 
         if (!datas) return res.status(404).json("product not found")
         const productIndex = datas.products.findIndex(pro => pro.toString() === productId)
@@ -227,7 +228,7 @@ const viewWishList = async (req, res) => {
 
 const createOrder = async (req, res) => {
     try {
-        const usercart = await Cart.findOne({ user: req.user })
+        const usercart = await Cart.findOne({ user: req.user.id })
         console.log(usercart.products);
 
         if (!usercart) return res.status(404).json("Usercart not found")
@@ -236,7 +237,7 @@ const createOrder = async (req, res) => {
         console.log(totalprice);
 
         const order = new Order({
-            user: req.user,
+            user: req.user.id,
             products: usercart.products.map(val => ({
                 product: val.product._id,
                 quantity: val.quantity,
@@ -245,7 +246,7 @@ const createOrder = async (req, res) => {
         })
 
         await order.save()
-        await Cart.findOneAndDelete({ user: req.user })
+        await Cart.findOneAndDelete({ user: req.user.id })
         res.status(200).json(order)
     } catch (error) {
         res.status(500).json(error)
@@ -254,7 +255,7 @@ const createOrder = async (req, res) => {
 
 const getOrderDetails = async (req, res) => {
     try {
-        const orders = await Order.findOne({ user: req.user }).populate('products.product');
+        const orders = await Order.findOne({ user: req.user.id }).populate('products.product');
         if (!orders) return res.status(404).json("user not found")
         res.json(orders);
     } catch (err) {
