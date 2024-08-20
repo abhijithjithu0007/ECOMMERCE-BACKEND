@@ -23,27 +23,24 @@ const regUser = async (req, res) => {
 
 const loginUser = async (req, res) => {
     const { email, password } = req.body
-    
+
     try {
         let user = await User.findOne({ email })
         let role = 'user'
-        
-
-       if(!user){
-         user = await Admin.findOne({email})
-         role = 'admin'
-       }
-        
 
         if (!user) {
-            return res.status(404).json( 'User Not Found' )
+            user = await Admin.findOne({ email })
+            role = 'admin'
+        }
+        if (!user) {
+            return res.status(404).json('User Not Found')
         }
         const isMatch = await bcrypt.compare(password, user.password);
 
         if (!isMatch) return res.status(400).json({ message: 'Invalid credentials' });
 
-        const token = jwt.sign({ id: user._id }, process.env.JWT_KEY, { expiresIn: '1d' });
-        res.json({ token, user: { id: user._id, name: user.name, email: user.email,role:role } });
+        const token = jwt.sign({ id: user._id, role: role }, process.env.JWT_KEY, { expiresIn: '1d' });
+        res.json({ token, user: { id: user._id, name: user.name, email: user.email, role: role } });
     } catch (error) {
         res.status(404).json(error)
     }
@@ -85,12 +82,12 @@ const getAllProducts = async (req, res) => {
 
 const addToCart = async (req, res) => {
     try {
-        const { productId, quantity,price} = req.body;
+        const { productId, quantity, price } = req.body;
         const data = await Cart.findOne({ user: req.user });
         if (!data) {
             const newCart = new Cart({
                 user: req.user,
-                products: [{ product: productId, quantity,price}],
+                products: [{ product: productId, quantity, price }],
             })
             await newCart.save()
             return res.status(200).json(newCart)
@@ -100,7 +97,7 @@ const addToCart = async (req, res) => {
         if (exist) {
             exist.quantity += quantity
         } else {
-            data.products.push({ product: productId, quantity,price })
+            data.products.push({ product: productId, quantity, price })
         }
 
         await data.save()
@@ -159,7 +156,7 @@ const removeFromCart = async (req, res) => {
 
 const viewCartProducts = async (req, res) => {
     try {
-        const cartproduct = await Cart.findOne({ user: req.user})
+        const cartproduct = await Cart.findOne({ user: req.user })
         if (!cartproduct) {
             res.json(404).json('not found')
         }
@@ -232,12 +229,12 @@ const createOrder = async (req, res) => {
     try {
         const usercart = await Cart.findOne({ user: req.user })
         console.log(usercart.products);
-        
+
         if (!usercart) return res.status(404).json("Usercart not found")
 
-        const totalprice = usercart.products.reduce((total, val) => total + val.price *val.quantity,0)
+        const totalprice = usercart.products.reduce((total, val) => total + val.price * val.quantity, 0)
         console.log(totalprice);
-        
+
         const order = new Order({
             user: req.user,
             products: usercart.products.map(val => ({
@@ -255,14 +252,14 @@ const createOrder = async (req, res) => {
     }
 }
 
-const getOrderDetails= async(req,res)=>{
+const getOrderDetails = async (req, res) => {
     try {
         const orders = await Order.findOne({ user: req.user }).populate('products.product');
-        if(!orders) return res.status(404).json("user not found")
+        if (!orders) return res.status(404).json("user not found")
         res.json(orders);
-      } catch (err) {
+    } catch (err) {
         res.status(500).json({ error: err.message });
-      }
+    }
 }
 
 
@@ -271,20 +268,20 @@ const getOrderDetails= async(req,res)=>{
 module.exports = {
     regUser,
     loginUser,
-////////////////////////
+    ////////////////////////
     productShowById,
     productsCategory,
     getAllProducts,
-////////////////////////
+    ////////////////////////
     viewCartProducts,
     removeFromCart,
     addToCart,
     updateProductQuantity,
-////////////////////////
+    ////////////////////////
     addToWishlist,
     viewWishList,
     removeWishlistProduct,
-////////////////////////
+    ////////////////////////
     createOrder,
     getOrderDetails
 }
