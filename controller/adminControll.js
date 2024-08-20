@@ -98,16 +98,35 @@ const getTotalProductsOrdered=async(req,res)=>{
   try {
    const total = await Order.aggregate([
       {$unwind: "$products"},
-      {$group: {_id:null, totalProducts:{$sum:'$products.quantity'}}}
+      {$group: {_id:null, totalProductsPurchased:{$sum:'$products.quantity'}}}
    ])
-   res.json(total[0])
+   res.json(total)
   } catch (error) {
    res.status(500).json(error)
   }
 }
 
+const getTotalRevenue=async(req,res)=>{
+   try {
+    const revenue = await Order.aggregate([
+       {$unwind: "$products"},
+       {$group: {_id:null, totalRevenue:{$sum:'$totalprice'}}}
+    ])
+    res.json(revenue)
+   } catch (error) {
+    res.status(500).json(error)
+   }
+ }
 
 
+ const getAllOrderDetails =async(req,res)=>{
+  try {
+   const details = await Order.find()
+   res.status(200).json(details)
+  } catch (error) {
+   res.status(500).json(error)
+  }
+ }
 
 
 module.exports={
@@ -119,5 +138,7 @@ module.exports={
     deleteProduct,
     updateProduct,
     getAllProducts,
-    getTotalProductsOrdered
+    getTotalProductsOrdered,
+    getTotalRevenue,
+    getAllOrderDetails
 }

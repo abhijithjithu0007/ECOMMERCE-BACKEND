@@ -14,5 +14,7 @@ router
     .post('/admin/addproduct',auth,adminAuth, controller.addProducts)
     .delete('/admin/deleteproduct/:id',auth,adminAuth, controller.deleteProduct)
     .put('/admin/updateproduct/:id' ,auth,adminAuth,controller.updateProduct)
+    .get('/admin/allproduct-ordered',auth,adminAuth,controller.getTotalProductsOrdered)
+    .get('/admin/total-revenue',auth,adminAuth,controller.getTotalRevenue)
 
 module.exports = router
