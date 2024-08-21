@@ -6,12 +6,19 @@ const bcrypt = require('bcryptjs')
 const Wishlist = require('../models/Wishlist')
 const Order = require('../models/Order')
 const Admin = require('../models/Admin')
+const { joiUserSchema } = require('../models/Validation')
 
 
-const regUser = async (req, res) =>{   
+const regUser = async (req, res) => {
     console.log(req.body);
-
-    const { name, email, password } = req.body
+    const { value, error } = joiUserSchema.validate(req.body)
+    if (error) {
+        return res.status(400).json({
+          status: "Error",
+          message: "Invalid user input data ",
+        });
+      }
+    const { name, email, password } = value
     try {
         const newuser = new User({ name, email, password })
         await newuser.save()
@@ -22,8 +29,12 @@ const regUser = async (req, res) =>{
 }
 
 const loginUser = async (req, res) => {
-    const { email, password } = req.body
 
+    const {value,error} = joiUserSchema.validate(req.body)
+    if(error){
+        return res.json(error)
+    }
+    const { email, password } = value
     try {
         let user = await User.findOne({ email })
         let role = 'user'
@@ -83,7 +94,7 @@ const getAllProducts = async (req, res) => {
 const addToCart = async (req, res) => {
     try {
         const { productId, quantity, price } = req.body;
-        const data = await Cart.findOne({ user: req.user.id});
+        const data = await Cart.findOne({ user: req.user.id });
 
         if (!data) {
             const newCart = new Cart({
@@ -111,7 +122,7 @@ const addToCart = async (req, res) => {
 const updateProductQuantity = async (req, res) => {
     try {
         const { productId, action } = req.body
-        const cartdata = await Cart.findOne({ user: req.user.id})
+        const cartdata = await Cart.findOne({ user: req.user.id })
         console.log(cartdata);
 
         if (!cartdata) {
