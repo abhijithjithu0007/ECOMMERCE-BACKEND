@@ -12,7 +12,13 @@ const { joiUserSchema } = require('../models/Validation')
 const regUser = async (req, res) => {
     console.log(req.body);
     const { value, error } = joiUserSchema.validate(req.body)
+    console.log("error:",error);
+    console.log("value:",value);
+    
+    
     if (error) {
+        console.log("error");
+        
         return res.status(400).json({
           status: "Error",
           message: "Invalid user input data ",
@@ -31,18 +37,19 @@ const regUser = async (req, res) => {
 const loginUser = async (req, res) => {
 
     const {value,error} = joiUserSchema.validate(req.body)
-    if(error){
-        return res.json(error)
-    }
+    if (error) {
+        return res.status(400).json({ message: 'Validation error', details: error.details });
+      }
     const { email, password } = value
     try {
         let user = await User.findOne({ email })
         let role = 'user'
 
         if (!user) {
-            user = await Admin.findOne({ email })
+            user = await Admin.findOne({email })
             role = 'admin'
         }
+        
         if (!user) {
             return res.status(404).json('User Not Found')
         }
@@ -51,9 +58,10 @@ const loginUser = async (req, res) => {
         if (!isMatch) return res.status(400).json({ message: 'Invalid credentials' });
 
         const token = jwt.sign({ id: user._id, role: role }, process.env.JWT_KEY, { expiresIn: '1d' });
-        res.json({ token, user: { id: user._id, name: user.name, email: user.email, role: role } });
+        res.status(200).json({ token, user: { id: user._id, name: user.name, email: user.email, role: role } });
     } catch (error) {
         res.status(404).json(error)
+        
     }
 }
 
@@ -204,6 +212,7 @@ const addToWishlist = async (req, res) => {
         res.status(404).json(error)
     }
 }
+
 
 const removeWishlistProduct = async (req, res) => {
     try {
