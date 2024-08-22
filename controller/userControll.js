@@ -98,13 +98,13 @@ const getAllProducts = async (req, res) => {
 
 const addToCart = async (req, res) => {
     try {
-        const { productId, quantity, price } = req.body;
+        const { productId, quantity } = req.body;
         const data = await Cart.findOne({ user: req.user.id });
 
         if (!data) {
             const newCart = new Cart({
                 user: req.user.id,
-                products: [{ product: productId, quantity, price }],
+                products: [{ product: productId,quantity}],
             })
             await newCart.save()
             return res.status(200).json(newCart)
@@ -114,7 +114,7 @@ const addToCart = async (req, res) => {
         if (exist) {
             exist.quantity += quantity
         } else {
-            data.products.push({ product: productId, quantity, price })
+            data.products.push({ product: productId,quantity })
         }
 
         await data.save()
@@ -173,16 +173,20 @@ const removeFromCart = async (req, res) => {
 
 const viewCartProducts = async (req, res) => {
     try {
-        const cartproduct = await Cart.findOne({ user: req.user.id })
-        if (!cartproduct) {
-            res.json(404).json('not found')
-        }
-        res.status(200).json(cartproduct)
-    } catch (error) {
-        console.log(error);
+        const cart = await Cart.findOne({ user: req.params.id }).populate('products.product');
 
+        if (!cart) {
+            return res.status(404).json('Cart not found');
+        }
+
+        res.status(200).json(cart);
+    } catch (error) {
+        console.error('Error fetching cart products:', error);
+        res.status(500).json('Server error');
     }
-}
+};
+
+
 
 
 const addToWishlist = async (req, res) => {
