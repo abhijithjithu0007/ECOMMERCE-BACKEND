@@ -7,6 +7,7 @@ const routes = express()
 routes
     .post('/user/signup', controller.regUser)
     .post("/user/login", controller.loginUser)
+    .get('/user/allproducts',controller.getAllProducts)
     .get('/user/category/:category', controller.productsCategory)
     .get('/user/:id', controller.productShowById)
     .post('/user/addtocart', auth, controller.addToCart)

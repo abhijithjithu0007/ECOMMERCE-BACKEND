@@ -16,14 +16,14 @@ const regUser = async (req, res) => {
     console.log("value:",value);
     
     
-    if (error) {
-        console.log("error");
+    // if (error) {
+    //     console.log("error");
         
-        return res.status(400).json({
-          status: "Error",
-          message: "Invalid user input data ",
-        });
-      }
+    //     return res.status(400).json({
+    //       status: "Error",
+    //       message: "Invalid user input data ",
+    //     });
+    //   }
     const { name, email, password } = value
     try {
         const newuser = new User({ name, email, password })
@@ -37,9 +37,10 @@ const regUser = async (req, res) => {
 const loginUser = async (req, res) => {
 
     const {value,error} = joiUserSchema.validate(req.body)
-    if (error) {
-        return res.status(400).json({ message: 'Validation error', details: error.details });
-      }
+    // if (error) {
+    //     return res.status(400).json({ message: 'Validation error', details: error.details });
+    //   }
+      
     const { email, password } = value
     try {
         let user = await User.findOne({ email })
@@ -94,6 +95,7 @@ const getAllProducts = async (req, res) => {
         if (!getall) {
             res.json(404).json('not found')
         }
+        res.json(getall)
     } catch (error) {
         res.status(500).json(error)
     }
@@ -273,7 +275,7 @@ const createOrder = async (req, res) => {
     }
 }
 
-const getOrderDetails = async (req, res) => {
+const getOrderDetails = async (req, res) => {       
     try {
         const orders = await Order.findOne({ user: req.user.id }).populate('products.product');
         if (!orders) return res.status(404).json("user not found")
