@@ -4,12 +4,19 @@ const MONGO_URL = process.env.MONGO_URL
 const express = require('express')
 const app = express()
 const cors = require('cors')
+const cookieParser = require('cookie-parser');
+
 
 const PORT = 5000
 const userRoutes = require('./routes/userRoute')
 const adminRoute = require('./routes/adminRoute')
 
-app.use(cors())
+app.use(cors({
+  origin: 'http://localhost:5173',
+  credentials: true
+}));
+
+app.use(cookieParser());
 app.use(express.json())
 app.use('/api', userRoutes)
 app.use('/api',adminRoute)

@@ -15,15 +15,6 @@ const regUser = async (req, res) => {
     console.log("error:",error);
     console.log("value:",value);
     
-    
-    // if (error) {
-    //     console.log("error");
-        
-    //     return res.status(400).json({
-    //       status: "Error",
-    //       message: "Invalid user input data ",
-    //     });
-    //   }
     const { name, email, password } = value
     try {
         const newuser = new User({ name, email, password })
@@ -37,9 +28,6 @@ const regUser = async (req, res) => {
 const loginUser = async (req, res) => {
 
     const {value,error} = joiUserSchema.validate(req.body)
-    // if (error) {
-    //     return res.status(400).json({ message: 'Validation error', details: error.details });
-    //   }
       
     const { email, password } = value
     try {
@@ -59,6 +47,13 @@ const loginUser = async (req, res) => {
         if (!isMatch) return res.status(400).json({ message: 'Invalid credentials' });
 
         const token = jwt.sign({ id: user._id, role: role }, process.env.JWT_KEY, { expiresIn: '1d' });
+        res.cookie('token', token, {
+            httpOnly: true,
+            secure: false,  
+            maxAge: 24 * 60 * 60 * 1000 ,
+            sameSite: 'strict'
+
+        });
         res.status(200).json({ token, user: { id: user._id, name: user.name, email: user.email, role: role } });
     } catch (error) {
         res.status(404).json(error)
@@ -77,9 +72,9 @@ const productsCategory = async (req, res) => {
 
 const productShowById = async (req, res) => {
     try {
-        const cateProduct = await Product.findById(req.params.id)
+        const cateProduct = await Product.findById(req.params.id)        
         if (!cateProduct) {
-            res.json(404).json({ message: "Product not found" })
+          return res.json(404).json({ message: "Product not found" })
         }
         res.json(cateProduct)
 
