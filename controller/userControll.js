@@ -12,9 +12,9 @@ const { joiUserSchema } = require('../models/Validation')
 const regUser = async (req, res) => {
     console.log(req.body);
     const { value, error } = joiUserSchema.validate(req.body)
-    console.log("error:",error);
-    console.log("value:",value);
-    
+    console.log("error:", error);
+    console.log("value:", value);
+
     const { name, email, password } = value
     try {
         const newuser = new User({ name, email, password })
@@ -27,18 +27,18 @@ const regUser = async (req, res) => {
 
 const loginUser = async (req, res) => {
 
-    const {value,error} = joiUserSchema.validate(req.body)
-      
+    const { value, error } = joiUserSchema.validate(req.body)
+
     const { email, password } = value
     try {
         let user = await User.findOne({ email })
         let role = 'user'
 
         if (!user) {
-            user = await Admin.findOne({email })
+            user = await Admin.findOne({ email })
             role = 'admin'
         }
-        
+
         if (!user) {
             return res.status(404).json('User Not Found')
         }
@@ -49,15 +49,15 @@ const loginUser = async (req, res) => {
         const token = jwt.sign({ id: user._id, role: role }, process.env.JWT_KEY, { expiresIn: '1d' });
         res.cookie('token', token, {
             httpOnly: true,
-            secure: false,  
-            maxAge: 24 * 60 * 60 * 1000 ,
+            secure: false,
+            maxAge: 24 * 60 * 60 * 1000,
             sameSite: 'strict'
 
         });
         res.status(200).json({ token, user: { id: user._id, name: user.name, email: user.email, role: role } });
     } catch (error) {
         res.status(404).json(error)
-        
+
     }
 }
 
@@ -72,9 +72,9 @@ const productsCategory = async (req, res) => {
 
 const productShowById = async (req, res) => {
     try {
-        const cateProduct = await Product.findById(req.params.id)        
+        const cateProduct = await Product.findById(req.params.id)
         if (!cateProduct) {
-          return res.json(404).json({ message: "Product not found" })
+            return res.json(404).json({ message: "Product not found" })
         }
         res.json(cateProduct)
 
@@ -104,7 +104,7 @@ const addToCart = async (req, res) => {
         if (!data) {
             const newCart = new Cart({
                 user: req.user.id,
-                products: [{ product: productId,quantity}],
+                products: [{ product: productId, quantity }],
             })
             await newCart.save()
             return res.status(200).json(newCart)
@@ -114,7 +114,7 @@ const addToCart = async (req, res) => {
         if (exist) {
             exist.quantity += quantity
         } else {
-            data.products.push({ product: productId,quantity })
+            data.products.push({ product: productId, quantity })
         }
 
         await data.save()
@@ -126,32 +126,39 @@ const addToCart = async (req, res) => {
 
 const updateProductQuantity = async (req, res) => {
     try {
-        const { productId, action } = req.body
-        const cartdata = await Cart.findOne({ user: req.user.id })
-        console.log(cartdata);
+        const { productId, action } = req.body;
+        const cartdata = await Cart.findOne({ user: req.user.id }).populate('products.product');
 
         if (!cartdata) {
-            res.status(404).json("user cart not found")
+            return res.status(404).json("User cart not found");
         }
-        const cartProduct = cartdata.products.find(prod => prod.product.toString() === productId)
+
+        const cartProduct = cartdata.products.find(prod => prod.product._id.toString() === productId);
+        
+        if (!cartProduct) {
+            return res.status(404).json("Product not found in cart");
+        }
 
         if (action === "increment") {
-            cartProduct.quantity += 1
+            cartProduct.quantity += 1;
         } else if (action === "decrement") {
             if (cartProduct.quantity > 1) {
-                cartProduct.quantity -= 1
+                cartProduct.quantity -= 1;
             } else {
-                cartdata.products = cartdata.products.filter(val => val.product.toString() !== productId)
+                cartdata.products = cartdata.products.filter(val => val.product._id.toString() !== productId);
             }
         } else {
-            res.status(404).json("there is an issue for updating quantity")
+            return res.status(400).json("Invalid action for updating quantity");
         }
         await cartdata.save();
-        res.status(200).json(cartdata);
+        const updatedCart = await Cart.findOne({ user: req.user.id }).populate('products.product');
+        res.status(200).json({ products: updatedCart.products || [] });
     } catch (error) {
-        res.status(500).json(error)
+        res.status(500).json(error);
+        console.log(error);
     }
-}
+};
+
 
 const removeFromCart = async (req, res) => {
     try {
@@ -274,7 +281,7 @@ const createOrder = async (req, res) => {
     }
 }
 
-const getOrderDetails = async (req, res) => {       
+const getOrderDetails = async (req, res) => {
     try {
         const orders = await Order.findOne({ user: req.user.id }).populate('products.product');
         if (!orders) return res.status(404).json("user not found")
