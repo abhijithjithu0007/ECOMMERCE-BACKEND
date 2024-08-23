@@ -134,7 +134,7 @@ const updateProductQuantity = async (req, res) => {
         }
 
         const cartProduct = cartdata.products.find(prod => prod.product._id.toString() === productId);
-        
+
         if (!cartProduct) {
             return res.status(404).json("Product not found in cart");
         }
@@ -166,11 +166,12 @@ const removeFromCart = async (req, res) => {
         const datas = await Cart.findOne({ user: req.user.id }).populate('products.product')
 
         if (!datas) return res.status(404).json("cart not found")
-        const productIndex = datas.products.findIndex(pro => pro.product.toString() === productId)
+        const productIndex = datas.products.findIndex(pro => pro.product._id.toString() === productId)
+        console.log(productIndex);
 
         datas.products.splice(productIndex, 1)
         await datas.save()
-        res.status(200).json(datas||[])
+        res.status(200).json(datas || [])
 
     } catch (error) {
         res.status(404).json('product not found')
@@ -213,7 +214,7 @@ const addToWishlist = async (req, res) => {
         } else {
             res.json("product already added")
         }
-        res.json(wishlist)
+      
     } catch (error) {
         res.status(404).json(error)
     }
@@ -223,14 +224,16 @@ const addToWishlist = async (req, res) => {
 const removeWishlistProduct = async (req, res) => {
     try {
         const { productId } = req.body
-        const datas = await Wishlist.findOne({ user: req.user.id })
+        console.log(productId);
+        
+        const datas = await Wishlist.findOne({ user: req.user.id }).populate('products')
 
         if (!datas) return res.status(404).json("product not found")
-        const productIndex = datas.products.findIndex(pro => pro.toString() === productId)
+        const productIndex = datas.products.find(pro => pro._id === productId)
 
         datas.products.splice(productIndex, 1)
         await datas.save()
-        res.status(200).json('product removed')
+        res.status(200).json(datas||[])
 
     } catch (error) {
         res.status(404).json('there have an error')
@@ -239,11 +242,11 @@ const removeWishlistProduct = async (req, res) => {
 
 const viewWishList = async (req, res) => {
     try {
-        const wishlistproduct = await Wishlist.findOne({ user: req.params.id })
+        const wishlistproduct = await Wishlist.findOne({ user: req.params.id }).populate('products')
         if (!wishlistproduct) {
-            res.json(404).json('not found')
+           return res.json(404).json('not found')
         }
-        res.status(200).json(wishlistproduct)
+       return res.status(200).json(wishlistproduct)
     } catch (error) {
         console.log(error);
 
