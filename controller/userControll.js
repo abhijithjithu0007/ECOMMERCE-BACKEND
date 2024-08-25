@@ -205,7 +205,7 @@ const addToWishlist = async (req, res) => {
                 products: [productId]
             })
             await newWish.save()
-            res.status(200).json(newWish)
+            res.status(200).json(newWish||[])
         }
         if (!wishlist.products.includes(productId)) {
             wishlist.products.push(productId)
@@ -292,12 +292,21 @@ const getOrderDetails = async (req, res) => {
     }
 }
 
+const userLogout = async(req,res)=>{
+  try {
+    res.clearCookie('token')
+    return res.status(200).json('Logged out successfully');
+  } catch (error) {
+    res.status(500).json(error);
+  }
+}
 
 
 
 module.exports = {
     regUser,
     loginUser,
+    userLogout,
     ////////////////////////
     productShowById,
     productsCategory,

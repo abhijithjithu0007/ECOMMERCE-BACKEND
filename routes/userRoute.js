@@ -19,6 +19,7 @@ routes
     .put('/user/updateproquantity', auth, controller.updateProductQuantity)
     .post('/user/create-order',auth,controller.createOrder)
     .get('/user/order/getorderdetails',auth,controller.getOrderDetails)
+    .post('/user/logout',auth,controller.userLogout)
 
 
 module.exports = routes
