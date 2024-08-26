@@ -7,6 +7,7 @@ const Wishlist = require('../models/Wishlist')
 const Order = require('../models/Order')
 const Admin = require('../models/Admin')
 const { joiUserSchema } = require('../models/Validation')
+const Razorpay = require('razorpay')
 
 
 const regUser = async (req, res) => {
@@ -257,30 +258,80 @@ const viewWishList = async (req, res) => {
 
 const createOrder = async (req, res) => {
     try {
-        const usercart = await Cart.findOne({ user: req.user.id })
-        console.log(usercart.products);
-
-        if (!usercart) return res.status(404).json("Usercart not found")
-
-        const totalprice = usercart.products.reduce((total, val) => total + val.price * val.quantity, 0)
-        console.log(totalprice);
-
-        const order = new Order({
-            user: req.user.id,
-            products: usercart.products.map(val => ({
-                product: val.product._id,
-                quantity: val.quantity,
-            })),
-            totalprice,
-        })
-
-        await order.save()
-        await Cart.findOneAndDelete({ user: req.user.id })
-        res.status(200).json(order)
+      const usercart = await Cart.findOne({ user: req.user.id }).populate("products.product");
+  
+      if (!usercart || usercart.products.length === 0) {
+        return res.status(404).json("Usercart not found or empty");
+      }
+  
+      const totalprice = Math.round(
+        usercart.products.reduce((total, val) => total + val.product.price * val.quantity, 0)
+      );
+  
+      const razorpayInstance = new Razorpay({
+        key_id: process.env.razorpay_key_id ,
+        key_secret: process.env.razorpay_secert_key,
+      });
+  
+      const options = {
+        amount: totalprice * 100, 
+        currency: "INR",
+        receipt: `receipt_order_${Date.now()}`,
+        payment_capture: 1, 
+      };
+  
+      const razorpayOrder = await razorpayInstance.orders.create(options);
+  
+      if (!razorpayOrder) {
+        return res.status(500).json({ message: "Error creating Razorpay order" });
+      }
+  
+      const order = new Order({
+        user: req.user.id,
+        products: usercart.products.map(val => ({
+          product: val.product._id,
+          quantity: val.quantity,
+        })),
+        totalprice,
+        orderId: razorpayOrder.id,
+        paymentStatus: "Pending",
+        purchaseDate: Date.now(),
+      });
+  
+      await order.save();
+      await Cart.findOneAndDelete({ user: req.user.id });
+        res.status(201).json({
+        message: "Order created successfully",
+        order,
+        razorpayOrderId: razorpayOrder.id,
+        razorpayKeyId: process.env.razorpay_key_id,
+      });
     } catch (error) {
-        res.status(500).json(error)
+      console.error("Error in createOrder:", error);
+      res.status(500).json({ message: error.message, error: "Can't create order" });
     }
-}
+  };
+
+
+  const verifyPayment = async (req, res) => {
+    try {
+      const { razorpayOrderId } = req.body;
+        const order = await Order.findOne({ orderId: razorpayOrderId });
+  
+      if (!order) {
+        return res.status(404).json({ message: "Order not found" });
+      }
+  
+      order.paymentStatus = "Completed";
+      await order.save();
+  
+      return res.status(200).json({ message: "Payment verified", order });
+    } catch (error) {
+      console.error("Error in verifyPayment:", error);
+      res.status(500).json({ message: error.message, error: "Can't verify payment" });
+    }
+  };
+
 
 const getOrderDetails = async (req, res) => {
     try {
@@ -289,7 +340,7 @@ const getOrderDetails = async (req, res) => {
         res.json(orders);
     } catch (err) {
         res.status(500).json({ error: err.message });
-    }
+    }   
 }
 
 const userLogout = async(req,res)=>{
@@ -322,5 +373,6 @@ module.exports = {
     removeWishlistProduct,
     ////////////////////////
     createOrder,
-    getOrderDetails
+    getOrderDetails,
+    verifyPayment
 }

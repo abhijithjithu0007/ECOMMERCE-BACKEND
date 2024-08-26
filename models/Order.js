@@ -9,6 +9,9 @@ const orderSchema = new mongoose.Schema({
     },
   ],
   totalprice: { type: Number, required: true },
+  orderId: { type: String, required: true }, // Added
+  paymentStatus: { type: String, default: 'Pending' }, // Added
+  purchaseDate: { type: Date }, // Added
 });
 
 module.exports = mongoose.model('Order', orderSchema);
