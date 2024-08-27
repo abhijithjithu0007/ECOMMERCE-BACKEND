@@ -185,7 +185,11 @@ const viewCartProducts = async (req, res) => {
         const cart = await Cart.findOne({ user: req.params.id }).populate('products.product');
 
         if (!cart) {
-            return res.status(404).json('Cart not found');
+            cart = new Cart({
+                user: req.params.id,
+                products: []
+            });
+            await cart.save();
         }
 
         res.status(200).json(cart);
@@ -245,7 +249,11 @@ const viewWishList = async (req, res) => {
     try {
         const wishlistproduct = await Wishlist.findOne({ user: req.params.id }).populate('products')
         if (!wishlistproduct) {
-           return res.json(404).json('not found')
+            wishlistproduct = new Wishlist({
+                user: req.params.id,
+                products: []
+            });
+            await wishlistproduct.save();
         }
        return res.status(200).json(wishlistproduct)
     } catch (error) {
@@ -356,7 +364,7 @@ const createOrder = async (req, res) => {
   
       await cart.save();
   
-      return res.status(200).json({ message: "Order cancelled successfully and items restored to cart" });
+      return res.status(200).json({ message: "Order cancelled successfully" });
     } catch (error) {
       console.error("Error in cancelPayment:", error);
       res.status(500).json({ message: error.message, error: "Can't cancel order" });
@@ -406,5 +414,6 @@ module.exports = {
     ////////////////////////
     createOrder,
     getOrderDetails,
-    verifyPayment
+    verifyPayment,
+    cancelPayment
 }
