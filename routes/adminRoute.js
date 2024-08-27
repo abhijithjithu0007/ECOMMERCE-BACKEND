@@ -17,5 +17,6 @@ router
     .get('/admin/allproduct-ordered',auth,adminAuth,controller.getTotalProductsOrdered)
     .get('/admin/total-revenue',auth,adminAuth,controller.getTotalRevenue)
     .get('/admin/allorders',auth,adminAuth,controller.getAllOrderDetails)
+    .get('/admin/getorderbyuser/:id',auth,adminAuth,controller.getOrderByUserId)
 
 module.exports = router

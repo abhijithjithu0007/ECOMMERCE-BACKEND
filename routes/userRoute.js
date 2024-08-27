@@ -19,7 +19,7 @@ routes
     .put('/user/updateproquantity', auth, controller.updateProductQuantity)
     .post('/user/create-order',auth,controller.createOrder)
     .get('/user/order/getorderdetails',auth,controller.getOrderDetails)
-    .post('/user/logout',auth,controller.userLogout)
+    .post('/user/logout',controller.userLogout)
     .post('/user/verify-payment',auth,controller.verifyPayment)
 
 

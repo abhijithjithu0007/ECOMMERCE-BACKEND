@@ -333,6 +333,38 @@ const createOrder = async (req, res) => {
   };
 
 
+  const cancelPayment = async (req, res) => {
+    try {
+      const { orderId } = req.params;
+  
+      const order = await Order.findOne({ orderId });
+  
+      if (!order) {
+        return res.status(404).json({ message: "Order not found" });
+      }
+  
+      if (order.paymentStatus !== "Pending") {
+        return res.status(400).json({ message: "Cannot cancel completed payment" });
+      }
+  
+      await Order.findOneAndDelete({ orderId });
+  
+      const cart = new Cart({
+        userId: order.user,
+        products: order.products,
+      });
+  
+      await cart.save();
+  
+      return res.status(200).json({ message: "Order cancelled successfully and items restored to cart" });
+    } catch (error) {
+      console.error("Error in cancelPayment:", error);
+      res.status(500).json({ message: error.message, error: "Can't cancel order" });
+    }
+  };
+  
+
+
 const getOrderDetails = async (req, res) => {
     try {
         const orders = await Order.findOne({ user: req.user.id }).populate('products.product');

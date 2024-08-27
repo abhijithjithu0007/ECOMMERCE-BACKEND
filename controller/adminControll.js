@@ -138,6 +138,16 @@ const getAllOrderDetails = async (req, res) => {
    }
 }
 
+const getOrderByUserId = async (req, res) => {
+   try {
+      const details = await Order.findById(req.params.id)
+      if(!details) return res.status(404).json("cannot found")
+      res.status(200).json(details)
+   } catch (error) {
+      res.status(500).json(error)
+   }
+}
+
 
 module.exports = {
    viewUsers,
@@ -150,5 +160,6 @@ module.exports = {
    getAllProducts,
    getTotalProductsOrdered,
    getTotalRevenue,
-   getAllOrderDetails
+   getAllOrderDetails,
+   getOrderByUserId
 }
