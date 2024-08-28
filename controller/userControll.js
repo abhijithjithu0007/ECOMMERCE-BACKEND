@@ -168,7 +168,6 @@ const removeFromCart = async (req, res) => {
 
         if (!datas) return res.status(404).json("cart not found")
         const productIndex = datas.products.findIndex(pro => pro.product._id.toString() === productId)
-        console.log(productIndex);
 
         datas.products.splice(productIndex, 1)
         await datas.save()
@@ -182,7 +181,7 @@ const removeFromCart = async (req, res) => {
 
 const viewCartProducts = async (req, res) => {
     try {
-        const cart = await Cart.findOne({ user: req.params.id }).populate('products.product');
+        let cart = await Cart.findOne({ user: req.params.id }).populate('products.product');
 
         if (!cart) {
             cart = new Cart({
@@ -247,7 +246,7 @@ const removeWishlistProduct = async (req, res) => {
 
 const viewWishList = async (req, res) => {
     try {
-        const wishlistproduct = await Wishlist.findOne({ user: req.params.id }).populate('products')
+        let wishlistproduct = await Wishlist.findOne({ user: req.params.id }).populate('products')
         if (!wishlistproduct) {
             wishlistproduct = new Wishlist({
                 user: req.params.id,

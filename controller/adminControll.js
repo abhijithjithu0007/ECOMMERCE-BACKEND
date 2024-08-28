@@ -15,6 +15,15 @@ const viewUsers = async (req, res) => {
    }
 }
 
+const deleteUser=async(req,res)=>{
+   try {
+      const deleteduser = await User.findByIdAndDelete(req.params.id)
+      if (!deleteduser) return res.status(404)
+      res.status(200).json(deleteduser);
+   } catch (error) {
+      res.status(500).json(error)
+   }
+}
 
 const viewUsersbyID = async (req, res) => {
    try {
@@ -67,7 +76,7 @@ const addProducts = async (req, res) => {
 
    const { value, error } = joiProductSchema.validate(req.body)
    if (error) {
-      res.json(error)
+      return res.status(400).json(error)
    }
    try {
       const { name, description, price, category, image } = value
@@ -85,24 +94,30 @@ const deleteProduct = async (req, res) => {
    try {
       const Proid = await Product.findByIdAndDelete(req.params.id)
       if (!Proid) return res.status(404)
-      res.json("Product deleted successfully");
+      res.status(200).json("Product deleted successfully");
    } catch (error) {
       res.status(500).json(error)
    }
 }
 
 const updateProduct = async (req, res) => {
-   const { value, error } = joiProductSchema.validate(req.body)
+   const { value, error } = joiProductSchema.validate(req.body);
+   
    if (error) {
-      res.json(error)
+      return res.status(400).json(error)
    }
    try {
-      const updateproduct = await Product.findByIdAndUpdate(req.params.id, value, { new: true })
-      res.json(updateproduct)
+      const updatedProduct = await Product.findByIdAndUpdate(req.params.id, value, { new: true });
+      
+      if (!updatedProduct) {
+         return res.status(404).json('Product not found');
+      }
+      res.json(updatedProduct);
    } catch (error) {
-      res.status(500).json(error)
+      res.status(500).json('Server error', error);
    }
-}
+};
+
 
 const getTotalProductsOrdered = async (req, res) => {
    try {
@@ -161,5 +176,6 @@ module.exports = {
    getTotalProductsOrdered,
    getTotalRevenue,
    getAllOrderDetails,
-   getOrderByUserId
+   getOrderByUserId,
+   deleteUser
 }

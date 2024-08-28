@@ -18,5 +18,6 @@ router
     .get('/admin/total-revenue',auth,adminAuth,controller.getTotalRevenue)
     .get('/admin/allorders',auth,adminAuth,controller.getAllOrderDetails)
     .get('/admin/getorderbyuser/:id',auth,adminAuth,controller.getOrderByUserId)
+    .delete('/admin/deleteuser/:id',auth,adminAuth,controller.deleteUser)
 
 module.exports = router
