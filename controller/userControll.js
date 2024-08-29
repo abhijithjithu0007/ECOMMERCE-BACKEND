@@ -122,6 +122,8 @@ const addToCart = async (req, res) => {
         res.json(data)
     } catch (error) {
         res.status(500).json(error)
+        console.log(error);
+        
     }
 }
 

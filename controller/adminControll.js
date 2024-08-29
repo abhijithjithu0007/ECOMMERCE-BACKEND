@@ -2,6 +2,7 @@ const User = require('../models/User')
 const Product = require('../models/Product')
 const Cart = require('../models/Cart')
 const Order = require('../models/Order')
+const Wishlist = require('../models/Wishlist')
 const { joiProductSchema } = require('../models/Validation')
 
 
@@ -92,13 +93,28 @@ const addProducts = async (req, res) => {
 
 const deleteProduct = async (req, res) => {
    try {
-      const Proid = await Product.findByIdAndDelete(req.params.id)
-      if (!Proid) return res.status(404)
-      res.status(200).json("Product deleted successfully");
+     const deletedProduct = await Product.findByIdAndDelete(req.params.id);
+     if (!deletedProduct) {
+       return res.status(404).json({ message: "Product not found" });
+     }
+ 
+     await Cart.updateMany(
+       { "products.product": req.params.id },
+       { $pull: { products: { product: req.params.id } } }
+     );
+ 
+     await Wishlist.updateMany(
+       { "products.product": req.params.id }, 
+       { $pull: { products: { product: req.params.id } } }
+     );
+ 
+     res.status(200).json("Product deleted successfully and removed from all carts and wishlists");
    } catch (error) {
-      res.status(500).json(error)
+     res.status(500).json({ message: "Error deleting product", error });
    }
-}
+ };
+ 
+ 
 
 const updateProduct = async (req, res) => {
    const { value, error } = joiProductSchema.validate(req.body);
