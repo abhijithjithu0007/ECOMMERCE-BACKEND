@@ -14,10 +14,9 @@ router
     .post('/admin/addproduct',auth,adminAuth, controller.addProducts)
     .delete('/admin/deleteproduct/:id',auth,adminAuth, controller.deleteProduct)
     .put('/admin/updateproduct/:id' ,auth,adminAuth,controller.updateProduct)
-    .get('/admin/allproduct-ordered',auth,adminAuth,controller.getTotalProductsOrdered)
     .get('/admin/total-revenue',auth,adminAuth,controller.getTotalRevenue)
     .get('/admin/allorders',auth,adminAuth,controller.getAllOrderDetails)
-    .get('/admin/getorderbyuser/:id',auth,adminAuth,controller.getOrderByUserId)
+    .get('/admin/getorderbyuser/:id',auth,adminAuth,controller.getProductsOrderedByUser)
     .delete('/admin/deleteuser/:id',auth,adminAuth,controller.deleteUser)
 
 module.exports = router

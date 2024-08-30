@@ -135,9 +135,12 @@ const updateProduct = async (req, res) => {
 };
 
 
-const getTotalProductsOrdered = async (req, res) => {
+const getProductsOrderedByUser = async (req, res) => {
    try {
-      const total = await Order.findOne({ user: req.user.id }).populate('pendingOrders.products.product').populate('completedOrders.products.product');
+      const total = await Order.findOne({user:req.params.id})
+      .populate('pendingOrders.products.product')
+      .populate('completedOrders.products.product')
+      .populate('user')
       const { pendingOrders, completedOrders } = total
       res.status(200).json({pendingOrders,completedOrders})
    } catch (error) {
@@ -167,15 +170,15 @@ const getAllOrderDetails = async (req, res) => {
    }
 }
 
-const getOrderByUserId = async (req, res) => {
-   try {
-      const details = await Order.findById(req.params.id)
-      if (!details) return res.status(404).json("cannot found")
-      res.status(200).json(details)
-   } catch (error) {
-      res.status(500).json(error)
-   }
-}
+// const getOrderByUserId = async (req, res) => {
+//    try {
+//       const details = await Order.findById(req.params.id)
+//       if (!details) return res.status(404).json("cannot found")
+//       res.status(200).json(details)
+//    } catch (error) {
+//       res.status(500).json(error)
+//    }
+// }
 
 
 module.exports = {
@@ -187,9 +190,9 @@ module.exports = {
    deleteProduct,
    updateProduct,
    getAllProducts,
-   getTotalProductsOrdered,
+   getProductsOrderedByUser,
    getTotalRevenue,
    getAllOrderDetails,
-   getOrderByUserId,
+   // getOrderByUserId,
    deleteUser
 }

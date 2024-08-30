@@ -118,8 +118,8 @@ const addToCart = async (req, res) => {
             data.products.push({ product: productId, quantity })
         }
 
-        await data.save()
-        res.json(data)
+      const newcart=  await(await data.save()).populate('products.product')
+        res.json(newcart)
     } catch (error) {
         res.status(500).json(error)
         console.log(error);
@@ -465,7 +465,10 @@ const cancelPayment = async (req, res) => {
 
 const getOrderDetails = async (req, res) => {
     try {
-        const orders = await Order.findOne({user:req.user.id}).populate('pendingOrders.products.product').populate('completedOrders.products.product');
+        const orders = await Order.findOne({user:req.user.id})
+        .populate('pendingOrders.products.product')
+        .populate('completedOrders.products.product');
+        
         const {pendingOrders, completedOrders} = orders
 
         if (!orders) return res.status(404).json("no orders for the user")
