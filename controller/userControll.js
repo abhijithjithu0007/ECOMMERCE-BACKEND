@@ -123,7 +123,7 @@ const addToCart = async (req, res) => {
     } catch (error) {
         res.status(500).json(error)
         console.log(error);
-        
+
     }
 }
 
@@ -211,7 +211,7 @@ const addToWishlist = async (req, res) => {
                 products: [productId]
             })
             await newWish.save()
-            res.status(200).json(newWish||[])
+            res.status(200).json(newWish || [])
         }
         if (!wishlist.products.includes(productId)) {
             wishlist.products.push(productId)
@@ -220,7 +220,7 @@ const addToWishlist = async (req, res) => {
         } else {
             res.json("product already added")
         }
-      
+
     } catch (error) {
         res.status(404).json(error)
     }
@@ -231,7 +231,7 @@ const removeWishlistProduct = async (req, res) => {
     try {
         const { productId } = req.body
         console.log(productId);
-        
+
         const datas = await Wishlist.findOne({ user: req.user.id }).populate('products')
 
         if (!datas) return res.status(404).json("product not found")
@@ -239,7 +239,7 @@ const removeWishlistProduct = async (req, res) => {
 
         datas.products.splice(productIndex, 1)
         await datas.save()
-        res.status(200).json(datas||[])
+        res.status(200).json(datas || [])
 
     } catch (error) {
         res.status(404).json('there have an error')
@@ -256,7 +256,7 @@ const viewWishList = async (req, res) => {
             });
             await wishlistproduct.save();
         }
-       return res.status(200).json(wishlistproduct)
+        return res.status(200).json(wishlistproduct)
     } catch (error) {
         console.log(error);
 
@@ -267,130 +267,221 @@ const viewWishList = async (req, res) => {
 
 const createOrder = async (req, res) => {
     try {
-      const usercart = await Cart.findOne({ user: req.user.id }).populate("products.product");
-  
-      if (!usercart || usercart.products.length === 0) {
-        return res.status(404).json("Usercart not found or empty");
-      }
-  
-      const totalprice = Math.round(
-        usercart.products.reduce((total, val) => total + val.product.price * val.quantity, 0)
-      );
-  
-      const razorpayInstance = new Razorpay({
-        key_id: process.env.razorpay_key_id ,
-        key_secret: process.env.razorpay_secert_key,
-      });
-  
-      const options = {
-        amount: totalprice * 100, 
-        currency: "INR",
-        receipt: `receipt_order_${Date.now()}`,
-        payment_capture: 1, 
-      };
-  
-      const razorpayOrder = await razorpayInstance.orders.create(options);
-  
-      if (!razorpayOrder) {
-        return res.status(500).json({ message: "Error creating Razorpay order" });
-      }
-  
-      const order = new Order({
-        user: req.user.id,
-        products: usercart.products.map(val => ({
-          product: val.product._id,
-          quantity: val.quantity,
-        })),
-        totalprice,
-        orderId: razorpayOrder.id,
-        paymentStatus: "Pending",
-        purchaseDate: Date.now(),
-      });
-  
-      await order.save();
-      await Cart.findOneAndDelete({ user: req.user.id });
+        const usercart = await Cart.findOne({ user: req.user.id }).populate("products.product")
+
+        if (!usercart || usercart.products.length === 0) {
+            return res.status(404).json("Usercart not found or empty");
+        }
+
+        const totalprice = Math.round(
+            usercart.products.reduce((total, val) => total + val.product.price * val.quantity, 0)
+        );
+        console.log(totalprice);
+        
+
+        const razorpayInstance = new Razorpay({
+            key_id: process.env.razorpay_key_id,
+            key_secret: process.env.razorpay_secret_key,
+        });
+
+        const options = {
+            amount: totalprice * 100,
+            currency: "INR",
+            receipt: `receipt_order_${Date.now()}`,
+            payment_capture: 1,
+        };
+
+        const razorpayOrder = await razorpayInstance.orders.create(options);
+
+        if (!razorpayOrder) {
+            return res.status(500).json("error creating Razorpay order" );
+        }
+
+        let order = await Order.findOne({ user: req.user.id });
+
+        if (!order) {
+            order = new Order({
+                user: req.user.id,
+                pendingOrders: [],
+                completedOrders: [],
+            });
+        }
+
+        const newOrder = {
+            products: usercart.products.map(val => ({
+                product: val.product._id,
+                quantity: val.quantity,
+            })),
+            totalprice,
+            orderId: razorpayOrder.id,
+            paymentStatus: "Pending",
+            purchaseDate: Date.now(),
+        };
+        console.log(order);
+
+
+        if (newOrder.paymentStatus === "Pending") {
+            const existingPendingIndex = order.pendingOrders.findIndex((ord) => ord.orderId === newOrder.orderId
+            );
+            
+            if (existingPendingIndex !== -1) {
+                order.pendingOrders[existingPendingIndex] = newOrder;
+            } else {
+                order.pendingOrders.push(newOrder);
+            }
+        } else {
+            const existingCompletedIndex = order.completedOrders.findIndex((ord) => ord.orderId === newOrder.orderId);
+            if (existingCompletedIndex !== -1) {
+                order.completedOrders[existingCompletedIndex] = newOrder;
+            } else {
+                order.completedOrders.push(newOrder);
+            }
+        }
+
+        await order.save();
+
+        await Cart.findOneAndDelete({ user: req.user.id });
+        console.log("User cart deleted after order creation");
+
         res.status(201).json({
-        message: "Order created successfully",
-        order,
-        razorpayOrderId: razorpayOrder.id,
-        razorpayKeyId: process.env.razorpay_key_id,
-      });
+            message: "Order processed successfully",
+            order,
+            razorpayOrderId: razorpayOrder.id,
+            razorpayKeyId: process.env.razorpay_key_id,
+        });
     } catch (error) {
-      console.error("Error in createOrder:", error);
-      res.status(500).json({ message: error.message, error: "Can't create order" });
+        console.error("Error in createOrder:", error);
+        res.status(500).json({ message: error.message, error: "Can't create order" });
     }
-  };
+};
 
 
-  const verifyPayment = async (req, res) => {
+
+
+const verifyPayment = async (req, res) => {
     try {
       const { razorpayOrderId } = req.body;
-        const order = await Order.findOne({ orderId: razorpayOrderId });
+          const order = await Order.findOne({ "pendingOrders.orderId": razorpayOrderId });
   
       if (!order) {
+        console.error('Order not found with the given Order ID:', razorpayOrderId);
         return res.status(404).json({ message: "Order not found" });
       }
   
-      order.paymentStatus = "Completed";
-      await order.save();
+      const pendingOrderIndex = order.pendingOrders.findIndex(
+        (ord) => ord.orderId === razorpayOrderId
+      );
   
-      return res.status(200).json({ message: "Payment verified", order });
+      if (pendingOrderIndex === -1) {
+        console.error('Order not found in pending orders');
+        return res.status(404).json("Order not found in pending orders");
+      }
+  
+      const completedOrder = order.pendingOrders[pendingOrderIndex];
+        completedOrder.paymentStatus = "Completed";
+  
+      order.pendingOrders.splice(pendingOrderIndex, 1);
+  
+      if (!order.completedOrders) {
+        order.completedOrders = [];
+      }
+  
+      order.completedOrders.push(completedOrder);
+  
+      await order.save();
+    
+      return res.status(200).json("Payment verified");
     } catch (error) {
       console.error("Error in verifyPayment:", error);
-      res.status(500).json({ message: error.message, error: "Can't verify payment" });
+      res.status(500).json("Can't verify payment");
     }
   };
+  
+  
 
-
-  const cancelPayment = async (req, res) => {
+const cancelPayment = async (req, res) => {
     try {
-      const { orderId } = req.params;
-  
-      const order = await Order.findOne({ orderId });
-  
-      if (!order) {
-        return res.status(404).json({ message: "Order not found" });
-      }
-  
-      if (order.paymentStatus !== "Pending") {
-        return res.status(400).json({ message: "Cannot cancel completed payment" });
-      }
-  
-      await Order.findOneAndDelete({ orderId });
-  
-      const cart = new Cart({
-        userId: order.user,
-        products: order.products,
-      });
-  
-      await cart.save();
-  
-      return res.status(200).json({ message: "Order cancelled successfully" });
+        const { orderId } = req.params;
+
+        const order = await Order.findOne({"pendingOrders.orderId": orderId,user: req.user.id,});
+
+        if (!order) {
+            return res.status(404).json("Order not found");
+        }
+
+        const pendingIndex = order.pendingOrders.findIndex((ord) => ord.orderId === orderId);
+
+        if (pendingIndex === -1) {
+            return res.status(404).json("Pending order not found");
+        }
+
+        const pendingOrder = order.pendingOrders[pendingIndex];
+
+        if (pendingOrder.paymentStatus !== "Pending") {
+            return res.status(400).json("Cannot cancel completed payment");
+        }
+
+        order.pendingOrders.splice(pendingIndex, 1);
+        await order.save();
+
+        let userCart = await Cart.findOne({ user: req.user.id });
+
+        if (!userCart) {
+            userCart = new Cart({
+                user: req.user.id,
+                products: pendingOrder.products.map((item) => ({
+                    product: item.product,
+                    quantity: item.quantity,
+                })),
+            });
+        } else {
+            pendingOrder.products.forEach((item) => {
+                const existingProductIndex = userCart.products.findIndex(
+                    (cartItem) => cartItem.product.toString() === item.product.toString()
+                );
+
+                if (existingProductIndex !== -1) {
+                    userCart.products[existingProductIndex].quantity += item.quantity;
+                } else {
+                    userCart.products.push({
+                        product: item.product,
+                        quantity: item.quantity,
+                    });
+                }
+            });
+        }
+
+        await userCart.save();
+
+        return res.status(200).json({ message: "Order cancelled successfully" });
     } catch (error) {
-      console.error("Error in cancelPayment:", error);
-      res.status(500).json({ message: error.message, error: "Can't cancel order" });
+        console.error("Error in cancelPayment:", error);
+        res.status(500).json({ message: error.message, error: "Can't cancel order" });
     }
-  };
-  
+};
+
+
 
 
 const getOrderDetails = async (req, res) => {
     try {
-        const orders = await Order.findOne({ user: req.user.id }).populate('products.product');
-        if (!orders) return res.status(404).json("user not found")
-        res.json(orders);
+        const pendingorder = await Order.find({ user: req.user.id, paymentStatus: 'Pending' }).populate('products.product');
+        const completedorder = await Order.find({ user: req.user.id, paymentStatus: 'Completed' }).populate('products.product');
+
+        if (!pendingorder || !completedorder) return res.status(404).json("no orders for the user")
+        res.json({ pendingorder, completedorder });
     } catch (err) {
         res.status(500).json({ error: err.message });
-    }   
+    }
 }
 
-const userLogout = async(req,res)=>{
-  try {
-    res.clearCookie('token')
-    return res.status(200).json('Logged out successfully');
-  } catch (error) {
-    res.status(500).json(error);
-  }
+const userLogout = async (req, res) => {
+    try {
+        res.clearCookie('token')
+        return res.status(200).json('Logged out successfully');
+    } catch (error) {
+        res.status(500).json(error);
+    }
 }
 
 

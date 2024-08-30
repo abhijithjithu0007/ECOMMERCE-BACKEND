@@ -21,6 +21,7 @@ routes
     .get('/user/order/getorderdetails',auth,controller.getOrderDetails)
     .post('/user/logout',controller.userLogout)
     .post('/user/verify-payment',auth,controller.verifyPayment)
+    .post('/user/cancel-payment',auth,controller.cancelPayment)
 
 
 module.exports = routes
