@@ -465,11 +465,11 @@ const cancelPayment = async (req, res) => {
 
 const getOrderDetails = async (req, res) => {
     try {
-        const pendingorder = await Order.find({ user: req.user.id, paymentStatus: 'Pending' }).populate('products.product');
-        const completedorder = await Order.find({ user: req.user.id, paymentStatus: 'Completed' }).populate('products.product');
+        const orders = await Order.findOne({user:req.user.id}).populate('pendingOrders.products.product').populate('completedOrders.products.product');
+        const {pendingOrders, completedOrders} = orders
 
-        if (!pendingorder || !completedorder) return res.status(404).json("no orders for the user")
-        res.json({ pendingorder, completedorder });
+        if (!orders) return res.status(404).json("no orders for the user")
+        res.json({ pendingOrders,completedOrders});
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
