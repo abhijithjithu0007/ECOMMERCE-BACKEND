@@ -1,6 +1,5 @@
 const mongoose = require('mongoose');
 
-// Define the structure for individual order details
 const OrderDetailSchema = new mongoose.Schema({
   products: [
     {
@@ -14,18 +13,16 @@ const OrderDetailSchema = new mongoose.Schema({
   purchaseDate: { type: Date, default: Date.now },
 });
 
-// Main order schema that includes arrays for pending and completed orders
 const orderSchema = new mongoose.Schema({
   user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
   pendingOrders: {
-    type: [OrderDetailSchema], // Array of pending orders
-    default: [], // Initialize as an empty array
+    type: [OrderDetailSchema],
+    default: []
   },
   completedOrders: {
-    type: [OrderDetailSchema], // Array of completed orders
-    default: [], // Initialize as an empty array
+    type: [OrderDetailSchema],
+    default: [],
   },
 });
 
-// Create and export the Order model
 module.exports = mongoose.model('Order', orderSchema);
