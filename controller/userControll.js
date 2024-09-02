@@ -50,7 +50,7 @@ const loginUser = async (req, res) => {
         const token = jwt.sign({ id: user._id, role: role }, process.env.JWT_KEY, { expiresIn: '1d' });
         res.cookie('token', token, {
             httpOnly: true,
-            secure: false,
+            secure: true,
             maxAge: 24 * 60 * 60 * 1000,
             sameSite: 'none'
 
