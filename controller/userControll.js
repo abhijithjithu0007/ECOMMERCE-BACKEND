@@ -52,7 +52,7 @@ const loginUser = async (req, res) => {
             httpOnly: true,
             secure: false,
             maxAge: 24 * 60 * 60 * 1000,
-            sameSite: 'strict'
+            sameSite: 'none'
 
         });
         res.status(200).json({ token, user: { id: user._id, name: user.name, email: user.email, role: role } });
