@@ -118,7 +118,7 @@ const addToCart = async (req, res) => {
             data.products.push({ product: productId, quantity })
         }
 
-      const newcart=  await(await data.save()).populate('products.product')
+        const newcart = await (await data.save()).populate('products.product')
         res.json(newcart)
     } catch (error) {
         res.status(500).json(error)
@@ -184,6 +184,7 @@ const removeFromCart = async (req, res) => {
 const viewCartProducts = async (req, res) => {
     try {
         let cart = await Cart.findOne({ user: req.params.id }).populate('products.product');
+        console.log(req.user);
 
         if (!cart) {
             cart = new Cart({
@@ -203,28 +204,31 @@ const viewCartProducts = async (req, res) => {
 
 const addToWishlist = async (req, res) => {
     try {
-        const { productId } = req.body
-        const wishlist = await Wishlist.findOne({ user: req.user.id })
+        const { productId } = req.body;
+        const wishlist = await Wishlist.findOne({ user: req.user.id });
+
         if (!wishlist) {
             const newWish = new Wishlist({
                 user: req.user.id,
-                products: [productId]
-            })
-            await newWish.save()
-            res.status(200).json(newWish || [])
-        }
-        if (!wishlist.products.includes(productId)) {
-            wishlist.products.push(productId)
-            await wishlist.save()
-            return res.status(200).json({ message: "product added to wishlist" })
-        } else {
-            res.json("product already added")
+                products: [productId],
+            });
+            await newWish.save();
+            return res.status(200).json(newWish)
         }
 
+        if (!wishlist.products.includes(productId)) {
+            wishlist.products.push(productId);
+            await wishlist.save();
+            return res.status(200).json(wishlist)
+        }
+
+        res.status(200).json("Product already added");
+
     } catch (error) {
-        res.status(404).json(error)
+        res.status(500).json({ error: "An error occurred while adding to wishlist." });
     }
-}
+};
+
 
 
 const removeWishlistProduct = async (req, res) => {
@@ -248,21 +252,24 @@ const removeWishlistProduct = async (req, res) => {
 
 const viewWishList = async (req, res) => {
     try {
-        let wishlistproduct = await Wishlist.findOne({ user: req.params.id }).populate('products')
-        if (!wishlistproduct) {
-            wishlistproduct = new Wishlist({
-                user: req.params.id,
-                products: []
+        const wishlist = await Wishlist.findOne({ user: req.params.id }).populate('products');
+
+        if (!wishlist) {
+            const newWishlist = new Wishlist({
+                user: req.user.id,
+                products: [],
             });
-            await wishlistproduct.save();
+            await newWishlist.save();
+            return res.status(200).json(newWishlist);
         }
-        return res.status(200).json(wishlistproduct)
+
+        return res.status(200).json(wishlist);
     } catch (error) {
-        console.log(error);
-
+        console.error(error);
+        res.status(500).json({ error: "An error occurred while viewing the wishlist." });
     }
+};
 
-}
 
 
 const createOrder = async (req, res) => {
@@ -277,7 +284,7 @@ const createOrder = async (req, res) => {
             usercart.products.reduce((total, val) => total + val.product.price * val.quantity, 0)
         );
         console.log(totalprice);
-        
+
 
         const razorpayInstance = new Razorpay({
             key_id: process.env.razorpay_key_id,
@@ -294,7 +301,7 @@ const createOrder = async (req, res) => {
         const razorpayOrder = await razorpayInstance.orders.create(options);
 
         if (!razorpayOrder) {
-            return res.status(500).json("error creating Razorpay order" );
+            return res.status(500).json("error creating Razorpay order");
         }
 
         let order = await Order.findOne({ user: req.user.id });
@@ -323,7 +330,7 @@ const createOrder = async (req, res) => {
         if (newOrder.paymentStatus === "Pending") {
             const existingPendingIndex = order.pendingOrders.findIndex((ord) => ord.orderId === newOrder.orderId
             );
-            
+
             if (existingPendingIndex !== -1) {
                 order.pendingOrders[existingPendingIndex] = newOrder;
             } else {
@@ -360,50 +367,50 @@ const createOrder = async (req, res) => {
 
 const verifyPayment = async (req, res) => {
     try {
-      const { razorpayOrderId } = req.body;
-          const order = await Order.findOne({ "pendingOrders.orderId": razorpayOrderId });
-  
-      if (!order) {
-        console.error('Order not found with the given Order ID:', razorpayOrderId);
-        return res.status(404).json({ message: "Order not found" });
-      }
-  
-      const pendingOrderIndex = order.pendingOrders.findIndex(
-        (ord) => ord.orderId === razorpayOrderId
-      );
-  
-      if (pendingOrderIndex === -1) {
-        console.error('Order not found in pending orders');
-        return res.status(404).json("Order not found in pending orders");
-      }
-  
-      const completedOrder = order.pendingOrders[pendingOrderIndex];
+        const { razorpayOrderId } = req.body;
+        const order = await Order.findOne({ "pendingOrders.orderId": razorpayOrderId });
+
+        if (!order) {
+            console.error('Order not found with the given Order ID:', razorpayOrderId);
+            return res.status(404).json({ message: "Order not found" });
+        }
+
+        const pendingOrderIndex = order.pendingOrders.findIndex(
+            (ord) => ord.orderId === razorpayOrderId
+        );
+
+        if (pendingOrderIndex === -1) {
+            console.error('Order not found in pending orders');
+            return res.status(404).json("Order not found in pending orders");
+        }
+
+        const completedOrder = order.pendingOrders[pendingOrderIndex];
         completedOrder.paymentStatus = "Completed";
-  
-      order.pendingOrders.splice(pendingOrderIndex, 1);
-  
-      if (!order.completedOrders) {
-        order.completedOrders = [];
-      }
-  
-      order.completedOrders.push(completedOrder);
-  
-      await order.save();
-    
-      return res.status(200).json("Payment verified");
+
+        order.pendingOrders.splice(pendingOrderIndex, 1);
+
+        if (!order.completedOrders) {
+            order.completedOrders = [];
+        }
+
+        order.completedOrders.push(completedOrder);
+
+        await order.save();
+
+        return res.status(200).json("Payment verified");
     } catch (error) {
-      console.error("Error in verifyPayment:", error);
-      res.status(500).json("Can't verify payment");
+        console.error("Error in verifyPayment:", error);
+        res.status(500).json("Can't verify payment");
     }
-  };
-  
-  
+};
+
+
 
 const cancelPayment = async (req, res) => {
     try {
         const { orderId } = req.params;
 
-        const order = await Order.findOne({"pendingOrders.orderId": orderId,user: req.user.id,});
+        const order = await Order.findOne({ "pendingOrders.orderId": orderId, user: req.user.id, });
 
         if (!order) {
             return res.status(404).json("Order not found");
@@ -465,14 +472,14 @@ const cancelPayment = async (req, res) => {
 
 const getOrderDetails = async (req, res) => {
     try {
-        const orders = await Order.findOne({user:req.user.id})
-        .populate('pendingOrders.products.product')
-        .populate('completedOrders.products.product');
-        
-        const {pendingOrders, completedOrders} = orders
+        const orders = await Order.findOne({ user: req.user.id })
+            .populate('pendingOrders.products.product')
+            .populate('completedOrders.products.product');
+
+        const { pendingOrders, completedOrders } = orders
 
         if (!orders) return res.status(404).json("no orders for the user")
-        res.json({ pendingOrders,completedOrders});
+        res.json({ pendingOrders, completedOrders });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }

@@ -137,12 +137,12 @@ const updateProduct = async (req, res) => {
 
 const getProductsOrderedByUser = async (req, res) => {
    try {
-      const total = await Order.findOne({user:req.params.id})
-      .populate('pendingOrders.products.product')
-      .populate('completedOrders.products.product')
-      .populate('user')
+      const total = await Order.findOne({ user: req.params.id })
+         .populate('pendingOrders.products.product')
+         .populate('completedOrders.products.product')
+         .populate('user')
       const { pendingOrders, completedOrders } = total
-      res.status(200).json({pendingOrders,completedOrders})
+      res.status(200).json({ pendingOrders, completedOrders })
    } catch (error) {
       res.status(500).json(error)
    }
@@ -151,8 +151,20 @@ const getProductsOrderedByUser = async (req, res) => {
 const getTotalRevenue = async (req, res) => {
    try {
       const revenue = await Order.aggregate([
-         { $unwind: "$products" },
-         { $group: { _id: null, totalRevenue: { $sum: '$totalprice' } } }
+         {
+            $project: {
+               completedOrders: 1
+            }
+         },
+         {
+            $unwind: "$completedOrders"
+         },
+         {
+            $group: {
+               _id: null,
+               totalRevenue: { $sum: "$completedOrders.totalprice" }
+            }
+         }
       ])
       res.json(revenue)
    } catch (error) {
@@ -170,15 +182,7 @@ const getAllOrderDetails = async (req, res) => {
    }
 }
 
-// const getOrderByUserId = async (req, res) => {
-//    try {
-//       const details = await Order.findById(req.params.id)
-//       if (!details) return res.status(404).json("cannot found")
-//       res.status(200).json(details)
-//    } catch (error) {
-//       res.status(500).json(error)
-//    }
-// }
+
 
 
 module.exports = {
