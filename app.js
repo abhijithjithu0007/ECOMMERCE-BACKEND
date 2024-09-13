@@ -10,9 +10,8 @@ const cookieParser = require('cookie-parser');
 const PORT = 5000
 const userRoutes = require('./routes/userRoute')
 const adminRoute = require('./routes/adminRoute')
-
 app.use(cors({
-  origin: 'http://localhost:5173',
+  origin: 'https://baby-shop-react-js.vercel.app',
   credentials: true
 }));
 
