@@ -12,7 +12,7 @@ const userRoutes = require('./routes/userRoute')
 const adminRoute = require('./routes/adminRoute')
 
 app.use(cors({
-  origin: 'https://baby-shop-react-js.vercel.app',
+  origin: 'http://localhost:5173',
   credentials: true
 }));
 
