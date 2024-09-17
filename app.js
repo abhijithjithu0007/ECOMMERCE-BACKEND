@@ -11,7 +11,7 @@ const PORT = 5000
 const userRoutes = require('./routes/userRoute')
 const adminRoute = require('./routes/adminRoute')
 app.use(cors({
-  origin: 'https://baby-shop-react-js.vercel.app',
+  origin: 'https://funiqo.vercel.app',
   credentials: true
 }));
 
