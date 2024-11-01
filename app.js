@@ -11,7 +11,7 @@ const PORT = 5000
 const userRoutes = require('./routes/userRoute')
 const adminRoute = require('./routes/adminRoute')
 app.use(cors({
-  origin: 'https://funiqo.vercel.app',
+  origin: 'https://furniqo.vercel.app',
   credentials: true
 }));
 
