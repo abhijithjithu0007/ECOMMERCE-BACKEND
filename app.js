@@ -12,7 +12,7 @@ const adminRoute = require("./routes/adminRoute");
 const { default: startCronJob } = require("./jobs/cronJob");
 app.use(
   cors({
-    origin: "http://localhost:5173",
+    origin: "https://furniqo.vercel.app",
     credentials: true,
   })
 );
