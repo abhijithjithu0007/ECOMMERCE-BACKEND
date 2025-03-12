@@ -283,7 +283,6 @@ const createOrder = async (req, res) => {
         const totalprice = Math.round(
             usercart.products.reduce((total, val) => total + val.product.price * val.quantity, 0)
         );
-        console.log(totalprice);
 
 
         const razorpayInstance = new Razorpay({
@@ -324,7 +323,6 @@ const createOrder = async (req, res) => {
             paymentStatus: "Pending",
             purchaseDate: Date.now(),
         };
-        console.log(order);
 
 
         if (newOrder.paymentStatus === "Pending") {
@@ -348,7 +346,6 @@ const createOrder = async (req, res) => {
         await order.save();
 
         await Cart.findOneAndDelete({ user: req.user.id });
-        console.log("User cart deleted after order creation");
 
         res.status(201).json({
             message: "Order processed successfully",
