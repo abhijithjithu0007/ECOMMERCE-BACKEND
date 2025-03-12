@@ -4,7 +4,7 @@ const axios = require("axios");
 const SERVER_URL = process.env.SERVER_URL;
 
 if (!SERVER_URL) {
-  throw new Error("SERVER_URL environment variable is n ot set");
+  throw new Error("SERVER_URL environment variable is not set");
 }
 
 const startCronJob = () => {

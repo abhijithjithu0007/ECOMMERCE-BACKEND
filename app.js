@@ -9,7 +9,7 @@ const cookieParser = require("cookie-parser");
 const PORT = 5000;
 const userRoutes = require("./routes/userRoute");
 const adminRoute = require("./routes/adminRoute");
-const { default: startCronJob } = require("./jobs/cronJob");
+const startCronJob = require("./jobs/cronJob");
 app.use(
   cors({
     origin: "https://furniqo.vercel.app",
